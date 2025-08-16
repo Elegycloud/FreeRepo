@@ -11,8 +11,8 @@ jobs:
       - name: Checkout private repo
         uses: actions/checkout@v3
         with:
-          repository: 私仓用户名/私仓名
-          token: ${{ secrets.PUBLIC_REPO_PAT }} # 公仓 PAT，用于拉私仓代码
+          repository: Elegycloud/lizhiPipe
+          token: ${{ secrets.WANGETOKEN }} # 公仓 PAT，用于拉私仓代码
           ref: main
 
       - name: Zip Generated Site
