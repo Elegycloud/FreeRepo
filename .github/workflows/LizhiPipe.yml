@@ -1,0 +1,37 @@
+name: Deploy Hexo to FTP Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout private repo
+        uses: actions/checkout@v3
+        with:
+          repository: 私仓用户名/私仓名
+          token: ${{ secrets.PUBLIC_REPO_PAT }} # 公仓 PAT，用于拉私仓代码
+          ref: main
+
+      - name: Zip Generated Site
+        run: zip -r LizhiPipe.zip ./
+
+      - name: Upload ZIP via FTP (optional)
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          curl -T LizhiPipe.zip ftp://$FTP_HOST/LizhiPipe.zip --user $FTP_USERNAME:$FTP_PASSWORD
+
+      - name: 上传标志文件 lizhi_deploy_success.flag
+        run: echo "success" > lizhi_deploy_success.flag
+
+      - name: 上传标志文件到服务器
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: curl -T lizhi_deploy_success.flag ftp://$FTP_HOST/lizhi_deploy_success.flag --user $FTP_USERNAME:$FTP_PASSWORD
