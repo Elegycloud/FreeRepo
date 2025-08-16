@@ -1,5 +1,4 @@
-name: Deploy Hexo to FTP Server
-
+name: LizhiPipe
 on:
   workflow_dispatch:
 
