@@ -1,0 +1,59 @@
+name: Xihuannio
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [Xihuannio]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v3
+
+      - name: Clone Hexo Source Repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.WANGETOKEN }}
+        run: |
+          git clone https://x-access-token:${GITHUB_TOKEN}@github.com/KitanoSakurana/xihuannio.git xihuannio
+          cp -r xihuannio/* .
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Hexo CLI
+        run: npm install -g hexo-cli
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Clean and Generate Hexo Site
+        run: |
+          hexo clean
+          hexo bangumi -u
+          hexo generate
+
+      - name: Zip Generated Site
+        run: zip -r kitano_xihuannio_cn.zip public
+
+      - name: Upload ZIP via FTP
+        env:
+          FTP_HOST: ${{ secrets.XHNO_FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.XHNO_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.XHNO_FTP_PASSWORD }}
+        run: |
+          curl -T kitano_xihuannio_cn.zip ftp://$FTP_HOST/kitano_xihuannio_cn.zip --user $FTP_USERNAME:$FTP_PASSWORD
+
+      - name: 上传标志文件 deploy_success.flag
+        run: echo "success" > deploy_success.flag
+
+      - name: 上传标志文件到服务器
+        env:
+          FTP_HOST: ${{ secrets.XHNO_FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.XHNO_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.XHNO_FTP_PASSWORD }}
+        run: curl -T deploy_success.flag ftp://$FTP_HOST/deploy_success.flag --user $FTP_USERNAME:$FTP_PASSWORD
